@@ -1,8 +1,6 @@
 """Tools shared by pulp_migrate tests."""
 from urllib.parse import urljoin
 
-from packaging.version import Version
-
 from pulp_smash import api, config, utils
 from pulp_smash.constants import (
     REPOSITORY_PATH,
@@ -14,6 +12,7 @@ from pulp_smash.constants import (
 from pulp_smash.tests.rpm.api_v2.utils import (  # noqa # pylint: disable=unused-import
     gen_distributor as gen_rpm_distributor,
     gen_repo as gen_rpm_repo,
+    get_unit as download_rpm,
 )
 
 from pulp_smash.tests.python.api_v2.utils import (  # noqa # pylint: disable=unused-import
@@ -68,25 +67,3 @@ def clean_repo(repo_id):
         if urljoin(REPOSITORY_PATH, repo_id) in repo['_href']:
             client.delete(repo['_href'])
     client.delete(ORPHANS_PATH)
-
-
-def download_rpm(repo_name, rpm_name):
-    """Download an rpm from a published repo.
-
-    Different versions of pulp organize the publish repos differently. There is
-    probably a more elegant solution to this problem than testing the version
-    of pulp.
-    """
-    if config.get_config().version < Version('2.12'):
-        download_path = '/pulp/repos/{}/{}'.format(
-            repo_name,
-            rpm_name,
-        )
-
-    if config.get_config().version >= Version('2.13'):
-        download_path = '/pulp/repos/{}/Packages/{}/{}'.format(
-            repo_name,
-            rpm_name[0],
-            rpm_name,
-        )
-    return api.Client(config.get_config()).get(download_path)

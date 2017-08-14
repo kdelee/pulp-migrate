@@ -50,11 +50,12 @@ class TestRPMRepo(BaseRestoreTestCase):
         """Test that repo is present, sync-able, and has content."""
         repo_path = '{}/'.format(RPM_REPO)
         repo = {'_href': urljoin(REPOSITORY_PATH, repo_path)}
+        repo = self.client.get(repo['_href'], params={'details': True})
         sync_report = utils.sync_repo(self.cfg, repo)
         api.poll_spawned_tasks(self.cfg, sync_report.json())
         units = utils.search_units(self.cfg, repo)
         self.assertGreater(len(units), 0, 'No units found in repo')
-        download_rpm(RPM_REPO, RPM)
+        download_rpm(self.cfg, repo['distributors'][0], RPM)
 
 
 class TestPythonRepo(BaseRestoreTestCase):
