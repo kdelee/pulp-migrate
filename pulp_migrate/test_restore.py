@@ -5,7 +5,7 @@ from urllib.parse import urljoin
 
 import unittest
 
-from pulp_smash import api, utils, config
+from pulp_smash import api, utils, config, selectors
 from pulp_smash.constants import (
     REPOSITORY_PATH,
     RPM,
@@ -15,9 +15,15 @@ from pulp_migrate.constants import (
     PYTHON_REPO,
     DOCKER_V1_REPO,
     DOCKER_V2_REPO,
+    PYTHON_PYPI_PACKAGE_NAME,
+    ALL_PYTHON_PYPI_PACKAGES,
+    LEGACY_PYTHON_PYPI_PACKAGES,
 )
 
-from pulp_migrate.utils import download_rpm
+from pulp_migrate.utils import (
+    download_rpm,
+    download_python_package,
+)
 
 
 class BaseRestoreTestCase(unittest.TestCase):
@@ -69,6 +75,16 @@ class TestPythonRepo(BaseRestoreTestCase):
         api.poll_spawned_tasks(self.cfg, sync_report.json())
         units = utils.search_units(self.cfg, repo)
         self.assertGreater(len(units), 0, 'No units found in repo')
+        if selectors.bug_is_testable(1883, self.cfg.version):
+            download_python_package(
+                PYTHON_REPO,
+                PYTHON_PYPI_PACKAGE_NAME,
+                ALL_PYTHON_PYPI_PACKAGES)
+        else:
+            download_python_package(
+                PYTHON_REPO,
+                PYTHON_PYPI_PACKAGE_NAME,
+                LEGACY_PYTHON_PYPI_PACKAGES)
 
 
 class TestDockerRepo(BaseRestoreTestCase):

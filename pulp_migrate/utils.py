@@ -67,3 +67,21 @@ def clean_repo(repo_id):
         if urljoin(REPOSITORY_PATH, repo_id) in repo['_href']:
             client.delete(repo['_href'])
     client.delete(ORPHANS_PATH)
+
+def download_python_package(repo_name, package_name, packages):
+    """Download all items listed under python package.
+
+    Note: packages MUST be a list
+    """
+    PYTHON_PUBLISHED_PATH = '/pulp/python/web'
+    PACKAGE_URL = '{}/{}/packages/source/{}/{}'.format(
+        PYTHON_PUBLISHED_PATH,
+        repo_name,
+        package_name[0],
+        package_name
+    )
+    client = api.Client(config.get_config(), api.safe_handler)
+    responses = []
+    for package in packages:
+        responses += client.get('{}/{}'.format(PACKAGE_URL, package))
+    return responses
